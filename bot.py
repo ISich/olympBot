@@ -33,12 +33,12 @@ class OlympBot:
         def toggle_type(call):
             user_id = call.message.chat.id
             type_key = call.data
-            # Текущий выбор пользователя
             if type_key in self.user_data[user_id]['subjects']:
                 self.user_data[user_id]['subjects'].pop(type_key)
             else:
                 self.user_data[user_id]['subjects'][type_key] = True
 
+            #по-хорошему это надо поменять, чтоб дважды маркап не создавался
             new_markup = types.InlineKeyboardMarkup()
             for s in self.subjects:
                 data_key = s
@@ -57,11 +57,49 @@ class OlympBot:
             self.bot.answer_callback_query(call.id, f"Вы выбрали: {types_chosen}")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             markup.add('Продолжить', 'Перевыбрать предметы')
-            self.bot.send_message(call.message.chat.id, f"Ты закрепил следующие предметы: {types_chosen}", reply_markup=markup)
+            self.bot.send_message(call.message.chat.id, f"Ты закрепил следующие предметы:\n{types_chosen}", reply_markup=markup)
 
         @self.bot.message_handler(func=lambda message: message.text == 'Продолжить')
-        def when_selected(message):
-            self.bot.send_message(message.chat.id, "Выбор подтвержден! Спасибо за использование бота.")
+        def move_next(message):
+            user_id = message.chat.id
+            self.user_data[user_id]['levels'] = {}
+            self.send_level_selection(message)
+
+    def send_level_selection(self, message):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        buttons = [types.InlineKeyboardButton(f"Уровень {i + 1}", callback_data=f"level_{i+1}") for i in range(3)]
+        confirm_button = types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_level")
+        markup.add(*buttons, confirm_button)
+        self.bot.send_message(message.chat.id, "Выберите уровень:", reply_markup=markup)
+        
+        @self.bot.callback_query_handler(func=lambda call: call.data.startswith('level_'))
+        def toggle_level(call):
+            user_id = call.message.chat.id
+            level_key = call.data
+            if level_key in self.user_data[user_id]['levels']:
+                self.user_data[user_id]['levels'].pop(level_key)
+            else:
+                self.user_data[user_id]['levels'][level_key] = True
+
+            new_markup = types.InlineKeyboardMarkup()
+            for i in range(3):
+                data_key = f"level_{i+1}"
+                label = f"Уровень {i + 1}"
+                if data_key in self.user_data[user_id]['levels']:
+                    label += " ✅"
+                new_button = types.InlineKeyboardButton(label, callback_data=data_key)
+                new_markup.add(new_button)
+            new_markup.add(types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_level"))
+            self.bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=new_markup)
+
+        @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm_level')
+        def confirm_level(call):
+            user_id = call.message.chat.id
+            levels_chosen = ', '.join(f"{key.split('_')[1]} уровень" for key in self.user_data[user_id]['levels'])
+            self.bot.answer_callback_query(call.id, f"Вы выбрали уровень: {levels_chosen}")
+            self.bot.send_message(call.message.chat.id, f"Вы выбрали:\n{levels_chosen}")
+            self.bot.send_message(call.message.chat.id, "Здесь мои полномочия все")
+
 
         @self.bot.message_handler(func=lambda message: message.text == 'Перевыбрать предметы')
         def reselect(message):
