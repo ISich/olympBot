@@ -7,6 +7,7 @@ class OlympBot:
         self.bot = telebot.TeleBot(token)
         self.user_data = {}
         self.subjects = ['Математика', 'Информатика', 'Физика', 'Химия', 'Русский язык']
+        self.grades = ["9 класса", "10 класса", "11 класса"]
         self.setup_handlers()
 
     def setup_handlers(self):
@@ -14,10 +15,10 @@ class OlympBot:
         def send_welcome(message):
             self.bot.reply_to(message, "Привет! Я - olympHelper - твой олимпиадный информатор.\nЯ расскажу тебе информацию о той или иной олимпиаде и не дам тебе забыть о датах регистрации!")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.add("9 класса", "10 класса", "11 класса")
+            markup.add(*[types.InlineKeyboardButton(s, callback_data=s) for s in self.subjects])
             self.bot.send_message(message.chat.id, "Давай знакомиться! Тебя интересуют олимпиады для:", reply_markup=markup)
         
-        @self.bot.message_handler(func=lambda message: message.text in ["9 класса", "10 класса", "11 класса"])
+        @self.bot.message_handler(func=lambda message: message.text in self.grades)
         def subject_peeker(message):
             user_id = message.chat.id
             self.user_data[user_id] = {'grade': message.text, 'subjects': {}}
@@ -38,7 +39,6 @@ class OlympBot:
             else:
                 self.user_data[user_id]['subjects'][type_key] = True
 
-            #по-хорошему это надо поменять, чтоб дважды маркап не создавался
             new_markup = types.InlineKeyboardMarkup()
             for s in self.subjects:
                 data_key = s
@@ -95,7 +95,10 @@ class OlympBot:
         @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm_level')
         def confirm_level(call):
             user_id = call.message.chat.id
-            levels_chosen = ', '.join(f"{key.split('_')[1]} уровень" for key in self.user_data[user_id]['levels'])
+            if len(self.user_data[user_id]['levels']) == 0:
+                levels_chosen = ''
+            else:
+                levels_chosen = ', '.join(f"{key.split('_')[1]} уровень" for key in self.user_data[user_id]['levels'])
             self.bot.answer_callback_query(call.id, f"Вы выбрали уровень: {levels_chosen}")
             self.bot.send_message(call.message.chat.id, f"Вы выбрали:\n{levels_chosen}")
             self.bot.send_message(call.message.chat.id, "Здесь мои полномочия все")
