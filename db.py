@@ -3,6 +3,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 Base = declarative_base()
 
+
 class Olymp(Base):
     __tablename__ = 'olymps'
 
@@ -10,7 +11,7 @@ class Olymp(Base):
     name = Column(String(100))
     level = Column(Integer)
     subject = Column(String(100))
-    count_selections = Column(Integer)
+    count_selections = Column('count selections', Integer)
 
     @classmethod
     def get_all_olymps(cls, session):
@@ -33,7 +34,8 @@ class Date(Base):
     def get_all_dates(cls, session):
         return session.query(cls).all()
 
-engine = create_engine('postgresql://username:password@localhost:5432/olympiads')
+
+engine = create_engine('postgresql://postgres:postgres@localhost:5433/olympiads')
 Base.metadata.create_all(engine)
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
