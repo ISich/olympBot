@@ -15,7 +15,7 @@ class OlympBot:
         def send_welcome(message):
             self.bot.reply_to(message, "Привет! Я - olympHelper - твой олимпиадный информатор.\nЯ расскажу тебе информацию о той или иной олимпиаде и не дам тебе забыть о датах регистрации!")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.add(*[types.InlineKeyboardButton(s, callback_data=s) for s in self.subjects])
+            markup.add(*[types.InlineKeyboardButton(s, callback_data=s) for s in self.grades])
             self.bot.send_message(message.chat.id, "Давай знакомиться! Тебя интересуют олимпиады для:", reply_markup=markup)
         
         @self.bot.message_handler(func=lambda message: message.text in self.grades)
