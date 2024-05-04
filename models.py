@@ -18,12 +18,6 @@ class UsersOlympiads(Base):
 
 class UsersInfo(Base):
     __tablename__ = 'users_info'
-    
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    tg_id: Mapped[str]
-    grade: Mapped[int]
-    subjects: Mapped[list[str]] = mapped_column(ARRAY(String(256)))
-    levels: Mapped[list[int]] = mapped_column(ARRAY(Integer))
 
 class OlympiadsInfo(Base):
     __tablename__ = 'olympiads_info'
@@ -37,12 +31,7 @@ class OlympiadsInfo(Base):
 class OlympiadsDates(Base):
     __tablename__ = 'olympiads_dates'
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    olymp_id: Mapped[int]
+    id: Mapped[innt] = mapped_column(primary_key=True, autoincrement=True)
+    olymp_id: Mapped[int] = mapped_column(ForeignKey='olympiads_info.olymp_id')
     stage_name: Mapped[str]
-    date_from: Mapped[datetime.datetime]
-    date_to: Mapped[datetime.datetime]
-
-    __table_args__ = (
-        ForeignKeyConstraint(['olymp_id'], ['olympiads_info.olymp_id']),
-    )
+    
