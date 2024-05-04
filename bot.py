@@ -1,6 +1,7 @@
 import os
 import telebot
 from telebot import types
+from dotenv import load_dotenv
 
 class OlympBot:
     def __init__(self, token):
@@ -15,7 +16,7 @@ class OlympBot:
         def send_welcome(message):
             self.bot.reply_to(message, "Привет! Я - olympHelper - твой олимпиадный информатор.\nЯ расскажу тебе информацию о той или иной олимпиаде и не дам тебе забыть о датах регистрации!")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.add(*[types.InlineKeyboardButton(s, callback_data=s) for s in self.subjects])
+            markup.add(*[types.InlineKeyboardButton(s, callback_data=s) for s in self.grades])
             self.bot.send_message(message.chat.id, "Давай знакомиться! Тебя интересуют олимпиады для:", reply_markup=markup)
         
         @self.bot.message_handler(func=lambda message: message.text in self.grades)
@@ -114,6 +115,8 @@ class OlympBot:
         self.bot.polling(none_stop=True)
 
 if __name__ == '__main__':
+    load_dotenv()
     token = os.getenv("TELEGRAM_TOKEN")
+    print(token)
     my_bot = OlympBot(token)
     my_bot.run()
