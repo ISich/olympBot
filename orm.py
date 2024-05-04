@@ -41,3 +41,31 @@ class SyncOrm():
                 session.rollback()
                 raise e
 
+    @staticmethod
+    def add_user_info(tg_id: str, grade: int, subjects: list[int], levels: list[int]) -> None:
+        #добавляет пользователя с этими данными в табличку users_info
+        pass
+
+
+    @staticmethod
+    def get_olympiads_interesting_for_user(tg_id: str) -> OlympiadsInfo:
+        #Возвращает список олимпиад, по фильтрам, который указал пользователь при регистрации aka предметы, уровень и тд
+        pass
+
+    @staticmethod
+    def subscibe_on_all_olympiads(tg_id: str) -> None:
+        #Должен добавить для конкретного user'a по его tg_id в табличку users_olumpiads все те олимпиады, которые подходят ему по фильтрам из его users_info
+        pass
+
+    @staticmethod
+    def get_olympiad_by_name(olympiad_name: str) -> OlympiadsInfo:
+        # По имени олимпиады возвращает ее можельку, которую мы на постпроцессинге преобразуем в сообщение
+        pass
+
+    def subscribe_on_olympiads_by_names(tg_id:str, olympiads_names: list[str]) -> None:
+        # По массиву из имен олимпиал подписывает пользователя на олимпиады по имени и фильтрам, те добовляет в таблицу users_olumpiads соответствующие записи
+        pass
+
+    def get_all_users_subscriptions() -> list[UsersOlympiads]:
+        #Просто возвращает все такие модельки из базы
+        pass
