@@ -113,6 +113,7 @@ class OlympBot:
     def run(self):
         self.bot.polling(none_stop=True)
 
+
 if __name__ == '__main__':
     token = os.getenv("TELEGRAM_TOKEN")
     my_bot = OlympBot(token)

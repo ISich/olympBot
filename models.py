@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Integer, String, ARRAY
+from sqlalchemy import Integer, String, ARRAY, ForeignKey
 from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 
@@ -9,21 +9,29 @@ class Base(DeclarativeBase):
 
 
 class UsersOrm(Base):
-    __tablename__ = 'Users'
+    __tablename__ = 'users_olympiads'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    followed_olymps: Mapped[list[int]] = mapped_column(ARRAY(Integer))
+    tg_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    followed_olymp: Mapped[int]
 
 
-class OlympiadsOrm(Base):
-    __tablename__ = 'olymps'
+class UsersInfo(Base):
+    __tablename__ = 'users_info'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(256), nullable=False)
-    level: Mapped[int] = mapped_column(default=0)
-    subject: Mapped[str] = mapped_column(String(256), nullable=False)
-    selections_start: Mapped[datetime.datetime]
-    selections_end: Mapped[datetime.datetime]
-    final_start: Mapped[datetime.datetime]
-    final_end: Mapped[datetime.datetime]
-    count_selections: Mapped[int]
+class OlympiadsInfo(Base):
+    __tablename__ = 'olympiads_info'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    olymp_id: Mapped[int]
+    name: Mapped[str]
+    levels: Mapped[list[int]]
+    subjects: Mapped[list[str]]
+
+
+class OlympiadsDates(Base):
+    __tablename__ = 'olympiads_dates'
+
+    id: Mapped[innt] = mapped_column(primary_key=True, autoincrement=True)
+    olymp_id: Mapped[int] = mapped_column(ForeignKey='olympiads_info.olymp_id')
+    stage_name: Mapped[str]
+    

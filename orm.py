@@ -1,5 +1,4 @@
 from db import session_factory, sync_engine
-from sqlalchemy import select
 from models import Base, UsersOrm, OlympiadsOrm
 
 
@@ -29,13 +28,16 @@ class SyncOrm():
                 raise e
 
     @staticmethod
-    def delete_user(tg_id: int):
+    def delete_user(tg_id: int) -> None:
         with session_factory() as session:
             try:
                 user = session.query(UsersOrm).filter(UsersOrm.tg_id == tg_id).first()
-                session.delete(user)
-                session.commit()
+                if user:
+                    session.delete(user)
+                    session.commit()
+                else:
+                    print(f"Пользователь с tg_id={tg_id} не найден.")
             except Exception as e:
                 session.rollback()
                 raise e
-            
+
