@@ -37,8 +37,7 @@ class OlympiadsInfo(Base):
 class OlympiadsDates(Base):
     __tablename__ = 'olympiads_dates'
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    olymp_id: Mapped[int]
+    olymp_id: Mapped[int] = mapped_column(primary_key=True)
     stage_name: Mapped[str]
     date_from: Mapped[datetime.datetime]
     date_to: Mapped[datetime.datetime]
