@@ -14,7 +14,7 @@ class SyncOrm():
 
 
     @staticmethod
-    def add_user_info(tg_id: str, grade: int, subjects: list[int], levels: list[int]) -> None:
+    def add_user_info(tg_id: str, grade: int, subjects: list[str], levels: list[int]) -> None:
         #добавляет пользователя с этими данными в табличку users_info
         with session_factory() as session:
             user = UsersInfo(tg_id=tg_id, grade=grade, subjects=subjects, levels=levels)
@@ -74,10 +74,8 @@ class SyncOrm():
             return all_users_subs
 
     @staticmethod
-    def insert_data():
+    def insert_data() -> None:
         with session_factory() as session:
-            frst = parse_first_page()
-            sec = parse_second_page()
             for line in parse_first_page():
                 info = OlympiadsInfo(
                     olymp_id=int(line[0]),

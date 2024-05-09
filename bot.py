@@ -1,12 +1,13 @@
 import os
 import telebot
 from telebot import types
+from orm import SyncOrm
 
 class OlympBot:
     def __init__(self, token):
         self.bot = telebot.TeleBot(token)
         self.user_data = {}
-        self.subjects = ['Математика', 'Информатика', 'Физика', 'Химия', 'Русский язык']
+        self.subjects = ['Математика', 'Информатика', 'Физика', 'Химия']
         self.grades = ["9 класса", "10 класса", "11 класса"]
         self.setup_handlers()
 
@@ -107,6 +108,16 @@ class OlympBot:
                 levels_chosen = ', '.join(f"{key.split('_')[1]} уровень" for key in self.user_data[user_id]['levels'])
             self.bot.answer_callback_query(call.id, f"Ты выбрал уровень: {levels_chosen}")
             self.bot.send_message(call.message.chat.id, f"Ты выбрал:\n{levels_chosen}")
+
+            user_id = call.message.chat.id
+            user_info = self.user_data[user_id]
+            grade = int(user_info['grade'].split()[0])
+            subjects = list(user_info['subjects'].keys())
+            levels = list(map(lambda x: int(x[-1]) , user_info['levels'].keys()))
+
+            print(grade, subjects, levels)
+
+            SyncOrm.add_user_info(user_id, grade, subjects, levels)
             self.ask_for_notifies(call.message)
     
     def ask_for_notifies(self, message):
@@ -151,9 +162,3 @@ class OlympBot:
 
     def run(self):
         self.bot.polling(none_stop=True)
-
-
-if __name__ == '__main__':
-    token = os.getenv("TELEGRAM_TOKEN")
-    my_bot = OlympBot(token)
-    my_bot.run()
