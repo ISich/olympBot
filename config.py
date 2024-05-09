@@ -3,10 +3,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     DB_HOST: str = 'localhost'
-    DB_PORT: int = 5433
+    DB_PORT: int = 5432
     DB_USER: str = 'postgres'
     DB_PASS: str = 'postgres'
-    DB_NAME: str = 'olympiads'
+    DB_NAME: str = 'bot'
 
     @property
     def DATABASE_URL_psycopg(self):

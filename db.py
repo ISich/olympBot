@@ -4,7 +4,7 @@ from config import settings
 
 sync_engine = create_engine(
     url=settings.DATABASE_URL_psycopg,
-    echo=True,
+    echo=True
 )
 
 session_factory = sessionmaker(sync_engine)

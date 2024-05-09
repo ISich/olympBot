@@ -34,14 +34,11 @@ class OlympiadsInfo(Base):
     level: Mapped[int]
     subject: Mapped[str]
 
+
 class OlympiadsDates(Base):
     __tablename__ = 'olympiads_dates'
-
-    olymp_id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    olymp_id: Mapped[int] = mapped_column(ForeignKey(OlympiadsInfo.olymp_id))
     stage_name: Mapped[str]
     date_from: Mapped[datetime.datetime]
     date_to: Mapped[datetime.datetime]
-
-    __table_args__ = (
-        ForeignKeyConstraint(['olymp_id'], ['olympiads_info.olymp_id']),
-    )
