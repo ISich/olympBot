@@ -28,14 +28,3 @@ def convert_date(date_str):
     current_year = datetime.now().year
     full_date_str = f"{date_str}.{current_year}"
     return datetime.strptime(full_date_str, "%d.%m.%Y")
-
-
-a = parse_first_page()
-b = parse_second_page()
-for x in b:
-    t = False
-    for y in a:
-        if x[0] == y[0]:
-            t = True
-    if not t:
-        print(x)
