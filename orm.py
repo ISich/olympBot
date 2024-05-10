@@ -56,7 +56,7 @@ class SyncOrm():
             return olymp
 
     @staticmethod
-    def subscribe_on_olympiads_by_names(tg_id:str, olympiads_names: list[str]) -> None:
+    def subscribe_on_olympiads_by_names(tg_id: str, olympiads_names: list[str]) -> None:
         # По массиву из имен олимпиал подписывает пользователя на олимпиады по имени и фильтрам, те добовляет в таблицу users_olumpiads соответствующие записи
         with session_factory() as session:
             userinfo = session.query(UsersInfo).filter(tg_id=tg_id).first()
@@ -65,7 +65,8 @@ class SyncOrm():
             olymps = session.query(OlympiadsInfo).filter(OlympiadsInfo.subject.in_(subjects),
                                                          OlympiadsInfo.level.in_(levels)).all()
             for olymp in olymps:
-                userinfo.followed_olymp.append(olymp[0])
+                user = UsersOlympiads(tg_id=tg_id, followed_olymp=olymp.olymp_id)
+                session.add(user)
             session.commit()
 
     @staticmethod
