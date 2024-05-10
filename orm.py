@@ -1,6 +1,6 @@
 from db import session_factory, sync_engine
 from models import Base, UsersOlympiads, UsersInfo, OlympiadsInfo, OlympiadsDates
-from sqlalchemy import or_
+from sqlalchemy import and_
 from parser import parse_first_page, parse_second_page, convert_date
 
 
@@ -10,7 +10,7 @@ class SyncOrm():
         Base.metadata.drop_all(sync_engine)
         sync_engine.echo = False
         Base.metadata.create_all(sync_engine)
-        sync_engine.echo = True
+        sync_engine.echo = False
 
 
     @staticmethod
@@ -22,14 +22,15 @@ class SyncOrm():
             session.commit()
 
     @staticmethod
-    def get_olympiads_interesting_for_user(tg_id: str) -> list[OlympiadsInfo]:
+    def get_olympiads_interesting_for_user(tg_id: str) -> list[str]:
         with session_factory() as session:
             userInfo = session.query(UsersInfo).filter(UsersInfo.tg_id == tg_id).first()
             subjects = userInfo.subjects
             levels = userInfo.levels
-            olymps = session.query(OlympiadsInfo).filter(or_(OlympiadsInfo.subject.in_(subjects),
+            olymps = session.query(OlympiadsInfo).filter(and_(OlympiadsInfo.subject.in_(subjects),
                                                              OlympiadsInfo.level.in_(levels))).all()
-            return olymps
+            res = list(map(str, olymps))
+            return res
 
     @staticmethod
     def subscibe_on_all_olympiads(tg_id: str) -> None:
@@ -43,7 +44,8 @@ class SyncOrm():
                 OlympiadsInfo.level.in_(levels)
             ).all()
             for olympiad in olympiads:
-                user_info.followed_olymp.append(olympiad[0])
+                user = UsersOlympiads(tg_id=tg_id, followed_olymp=olympiad.olymp_id)
+                session.add(user)
             session.commit()
 
     @staticmethod

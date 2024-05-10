@@ -25,6 +25,7 @@ class UsersInfo(Base):
     subjects: Mapped[list[str]] = mapped_column(ARRAY(String(256)))
     levels: Mapped[list[int]] = mapped_column(ARRAY(Integer))
 
+
 class OlympiadsInfo(Base):
     __tablename__ = 'olympiads_info'
 
@@ -33,6 +34,9 @@ class OlympiadsInfo(Base):
     link: Mapped[str]
     level: Mapped[int]
     subject: Mapped[str]
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class OlympiadsDates(Base):

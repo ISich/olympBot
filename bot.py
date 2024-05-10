@@ -112,17 +112,15 @@ class OlympBot:
             user_id = call.message.chat.id
             user_info = self.user_data[user_id]
             grade = int(user_info['grade'].split()[0])
-            subjects = list(user_info['subjects'].keys())
+            subjects = list(map(lambda x: x.lower(), user_info['subjects'].keys()))
             levels = list(map(lambda x: int(x[-1]) , user_info['levels'].keys()))
-
-            print(grade, subjects, levels)
 
             SyncOrm.add_user_info(user_id, grade, subjects, levels)
             self.ask_for_notifies(call.message)
     
     def ask_for_notifies(self, message):
         self.bot.send_message(message.chat.id, "По заданным критериям у меня есть информация про следующие олимпиады:")
-        #def_obrasheniye_k_bd()
+        #ээээээ ВАНЯЯЯЯЯЯ ЭШКЕРЕ АУФ ПФФФФ
         self.bot.send_dice(message.chat.id)
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add("Подписаться на все", "Выбрать конкретные")
@@ -130,6 +128,7 @@ class OlympBot:
 
         @self.bot.message_handler(func=lambda message: message.text == 'Подписаться на все')
         def all_peeked(message):
+            SyncOrm.subscibe_on_all_olympiads(str(message.chat.id))
             self.send_final(message)
 
         @self.bot.message_handler(func=lambda message: message.text == 'Выбрать конкретные')
