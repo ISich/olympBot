@@ -1,7 +1,7 @@
 from db import session_factory, sync_engine
 from models import Base, UsersOlympiads, UsersInfo, OlympiadsInfo, OlympiadsDates
 from sqlalchemy import and_
-from parser import parse_first_page, parse_second_page, convert_date
+from parser_1 import parse_first_page, parse_second_page, convert_date
 
 
 class SyncOrm():
@@ -23,6 +23,7 @@ class SyncOrm():
 
     @staticmethod
     def get_olympiads_interesting_for_user(tg_id: str) -> list[str]:
+        #возвращает список названий олимпиад по фильтрам юзера
         with session_factory() as session:
             userInfo = session.query(UsersInfo).filter(UsersInfo.tg_id == tg_id).first()
             subjects = userInfo.subjects
