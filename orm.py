@@ -22,7 +22,7 @@ class SyncOrm():
             session.commit()
 
     @staticmethod
-    def get_olympiads_interesting_for_user(tg_id: str) -> list[str]:
+    def get_olympiads_interesting_for_user(tg_id: str) -> list[OlympiadsInfo]:
         #возвращает список названий олимпиад по фильтрам юзера
         with session_factory() as session:
             userInfo = session.query(UsersInfo).filter(UsersInfo.tg_id == tg_id).first()
@@ -30,8 +30,7 @@ class SyncOrm():
             levels = userInfo.levels
             olymps = session.query(OlympiadsInfo).filter(and_(OlympiadsInfo.subject.in_(subjects),
                                                              OlympiadsInfo.level.in_(levels))).all()
-            res = list(map(str, olymps))
-            return res
+            return olymps
 
     @staticmethod
     def subscibe_on_all_olympiads(tg_id: str) -> None:
@@ -69,21 +68,38 @@ class SyncOrm():
                 user = UsersOlympiads(tg_id=tg_id, followed_olymp=olymp.olymp_id)
                 session.add(user)
             session.commit()
+    
+    @staticmethod
+    def subscribe_on_olympiads_by_ids(tg_id: str, ids: list[int]) -> None:
+        # По массиву из имен олимпиал подписывает пользователя на олимпиады по имени и фильтрам, те добовляет в таблицу users_olumpiads соответствующие записи
+        with session_factory() as session:
+            for id in ids:
+                user = UsersOlympiads(tg_id=tg_id, followed_olymp=id)
+                session.add(user)
+            session.commit()
 
     @staticmethod
-    def get_all_user_subscriptions(tg_id : str) -> list[str]:
+    def get_all_user_subscriptions(tg_id : str) -> OlympiadsInfo:
         #Возвращает имена пользовательских олимпиад
         with session_factory() as session:
-            all_users_subs = [result[0] for result in session.query(UsersOlympiads.followed_olymp).filter(tg_id=tg_id).all()]
-            olymps = [result[0] for result in session.query(OlympiadsInfo.name).filter(OlympiadsInfo.olymp_id.in_(all_users_subs)).all()]
+            all_users_subs = [result[0] for result in session.query(UsersOlympiads.followed_olymp).filter(UsersOlympiads.tg_id==tg_id).all()]
+            olymps = session.query(OlympiadsInfo).filter(OlympiadsInfo.olymp_id.in_(all_users_subs)).all()
             return olymps
 
     @staticmethod
     def get_olympinfo_by_name(name: str) -> str:
         #Возвращает инфу об олимпиаде по ее названию
         with session_factory() as session:
-            olymp = session.query(OlympiadsInfo.link, OlympiadsInfo.level, OlympiadsInfo.subject).filter(OlympiadsInfo.name == name).first()
-            return f'{name} Ссылка:\n{olymp[0]}\nУровень:\n{olymp[1]}\nПредмет:\n{olymp[2]}'
+            olymp = session.query(OlympiadsInfo).filter(OlympiadsInfo.name == name).first()
+            return f'{olymp.name}\nСсылка:\n{olymp.link}\nУровень: {olymp.level}\nПредмет: {olymp.subject}'
+    
+    @staticmethod
+    def get_olympinfo_by_id(id: int) -> str:
+        #Возвращает инфу об олимпиаде по ее id
+        with session_factory() as session:
+            olymp = session.query(OlympiadsInfo).filter(OlympiadsInfo.olymp_id == id).first()
+            return f'{olymp.name}\nСсылка:\n{olymp.link}\nУровень: {olymp.level}\nПредмет: {olymp.subject}'
+    
 
     @staticmethod
     def insert_data() -> None:

@@ -9,6 +9,7 @@ class OlympBot:
         self.user_data = {}
         self.subjects = ['Математика', 'Информатика', 'Физика', 'Химия']
         self.grades = ["9 класса", "10 класса", "11 класса"]
+        self.olymps = []
         self.setup_handlers()
 
     def setup_handlers(self):
@@ -99,7 +100,7 @@ class OlympBot:
             new_markup.add(types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_level"))
             self.bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=new_markup)
 
-        @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm_level')
+        @self.bot.callback_query_handler(func=lambda call: call.data == "confirm_level")
         def confirm_level(call):
             user_id = call.message.chat.id
             if len(self.user_data[user_id]['levels']) == 0:
@@ -120,7 +121,9 @@ class OlympBot:
     
     def ask_for_notifies(self, message):
         self.bot.send_message(message.chat.id, "По заданным критериям у меня есть информация про следующие олимпиады:")
-        self.bot.send_dice(message.chat.id)
+        user_olymps = SyncOrm.get_olympiads_interesting_for_user(str(message.chat.id))
+        text = "".join([f"{o}\n" for o in user_olymps])
+        self.bot.send_message(message.chat.id, text)
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add("Подписаться на все", "Выбрать конкретные")
         self.bot.send_message(message.chat.id, "Хочешь получать уведомления о всех или каких-то конкретных?", reply_markup=markup)
@@ -137,26 +140,28 @@ class OlympBot:
     def send_olymp_selection(self, message):
         user_olymps = SyncOrm.get_olympiads_interesting_for_user(str(message.chat.id))
         markup = types.InlineKeyboardMarkup(row_width=1)
-        buttons = [types.InlineKeyboardButton(o, callback_data=f"peekolymp_{o}") for o in user_olymps]
-        markup.add(*buttons, types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_olymp"))        
+        buttons = [types.InlineKeyboardButton(o.name, callback_data=f"peekolymp_{o.olymp_id}") for o in user_olymps]
+        markup.add(*buttons, types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_olymp"))
+        self.user_data[message.chat.id]['olymps_id'] = {}
         self.bot.send_message(message.chat.id, "Выбери интересующие тебя олимпиады:", reply_markup=markup)
     
         @self.bot.callback_query_handler(func=lambda call: call.data.startswith('peekolymp_'))
         def remake_olymp_btns(call):
             user_id = call.message.chat.id
-            level_key = call.data
-            if level_key in self.user_data[user_id]['olymps']:
-                self.user_data[user_id]['olymps'].pop(level_key)
+            olymp_id = int(call.data.split('_')[1])
+            if olymp_id in self.user_data[user_id]['olymps_id']:
+                self.user_data[user_id]['olymps_id'].pop(olymp_id)
             else:
-                self.user_data[user_id]['olymps'][level_key] = True
+                self.user_data[user_id]['olymps_id'][olymp_id] = True
 
             new_markup = types.InlineKeyboardMarkup()
-            for s in self.subjects:
-                data_key = s
-                label = s
-                if data_key in self.user_data[user_id]['olymps']:
+            for s in user_olymps:
+                data_key = s.olymp_id
+                label = s.name
+                if data_key in self.user_data[user_id]['olymps_id']:
                     label += " ✅"
-                new_button = types.InlineKeyboardButton(label, callback_data=data_key)
+
+                new_button = types.InlineKeyboardButton(label, callback_data=f'peekolymp_{data_key}')
                 new_markup.add(new_button)
             new_markup.add(types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_olymp"))
             self.bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=new_markup)
@@ -164,15 +169,19 @@ class OlympBot:
         @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm_olymp')
         def confirm_selection(call):
             user_id = call.message.chat.id
-            types_chosen = ', '.join(self.user_data[user_id]['olymps'])
-            self.bot.answer_callback_query(call.id, f"Ты выбрал: {types_chosen}")
+            peeked_olymps = []
+            for o in user_olymps:
+                if o.olymp_id in self.user_data[user_id]['olymps_id']:
+                    peeked_olymps.append(o.name)
+            olymps_chosen = ''.join(f"\n{o}" for o in peeked_olymps)
+            self.bot.answer_callback_query(call.id, f"Ты выбрал: {olymps_chosen}")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.add('Продолжить', 'Перевыбрать олимпиады')
-            self.bot.send_message(call.message.chat.id, f"Ты выбрал следующие олимпиады:\n{types_chosen}", reply_markup=markup)
+            markup.add('Далее', 'Перевыбрать олимпиады')
+            self.bot.send_message(call.message.chat.id, f"Ты выбрал следующие олимпиады:\n{olymps_chosen}", reply_markup=markup)
 
-        @self.bot.message_handler(func=lambda message: message.text == 'Продолжить')
+        @self.bot.message_handler(func=lambda message: message.text == 'Далее')
         def move_next(message):
-            SyncOrm.subscribe_on_olympiads_by_names(str(message.chat.id), self.user_data[message.chat.id]['olymps'].keys())
+            SyncOrm.subscribe_on_olympiads_by_ids(str(message.chat.id), self.user_data[message.chat.id]['olymps_id'].keys())
             self.send_final(message)
         
         @self.bot.message_handler(func=lambda message: message.text == 'Перевыбрать олимпиады')
@@ -188,16 +197,16 @@ class OlympBot:
         
         @self.bot.message_handler(func=lambda message: message.text == 'Посмотреть информацию об олимпиадах')
         def check_info(message):
-            user_olymps = SyncOrm.get_all_user_subscriptions(message.chat.id)
+            user_olymps = SyncOrm.get_all_user_subscriptions(str(message.chat.id))
             markup = types.InlineKeyboardMarkup(row_width=3)
-            buttons = [types.InlineKeyboardButton(o, callback_data=f"checkolymp_{o}") for o in user_olymps]
+            buttons = [types.InlineKeyboardButton(o.name, callback_data=f"checkolymp_{o.olymp_id}") for o in user_olymps]
             markup.add(*buttons)
             self.bot.send_message(message.chat.id, 'Выбери интересующую олимпиаду', reply_markup=markup)
         
         @self.bot.callback_query_handler(func=lambda call: call.data.startswith('checkolymp_'))
         def send_info(call):
-            olymp_name = call.data.split('_')[1]
-            info = SyncOrm.get_olympinfo_by_name(olymp_name)
+            olymp_id = int(call.data.split('_')[1])
+            info = SyncOrm.get_olympinfo_by_id(olymp_id)
             self.bot.send_message(call.message.chat.id, info)
 
     def run(self):
