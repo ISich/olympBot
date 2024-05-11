@@ -71,7 +71,7 @@ class SyncOrm():
             session.commit()
 
     @staticmethod
-    def get_all_users_subscriptions(tg_id : str) -> list[str]:
+    def get_all_user_subscriptions(tg_id : str) -> list[str]:
         #Просто возвращает все такие модельки из базы
         with session_factory() as session:
             all_users_subs = [result[0] for result in session.query(UsersOlympiads.followed_olymp).filter(tg_id=tg_id).all()]

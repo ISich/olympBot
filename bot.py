@@ -188,13 +188,15 @@ class OlympBot:
         
         @self.bot.message_handler(func=lambda message: message.text == 'Посмотреть информацию об олимпиадах')
         def check_info(message):
-            #создать кнопки с каждой олимпой из словаря юзера
-            markup = types.InlineKeyboardMarkup()
-            self.bot.send_message(message.chat.id, 'Выбери интересуемую олимпиаду', reply_markup=markup)
+            user_olymps = SyncOrm.get_all_user_subscriptions(message.chat.id)
+            markup = types.InlineKeyboardMarkup(row_width=3)
+            buttons = [types.InlineKeyboardButton(o, callback_data=f"checkolymp_{o}") for o in user_olymps]
+            markup.add(*buttons)
+            self.bot.send_message(message.chat.id, 'Выбери интересующую олимпиаду', reply_markup=markup)
         
-        @self.bot.callback_query_handler(func=lambda call: call.data.startswith('olymp_'))
+        @self.bot.callback_query_handler(func=lambda call: call.data.startswith('checkolymp_'))
         def send_info(call):
-            self.bot.send_message(call.message.chat.id, "huy") #информация из бд
+            self.bot.send_message(call.message.chat.id, f"инфа из бд про олимпиаду")
 
     def run(self):
         self.bot.polling(none_stop=True)
