@@ -71,11 +71,12 @@ class SyncOrm():
             session.commit()
 
     @staticmethod
-    def get_all_users_subscriptions() -> list[UsersOlympiads]:
+    def get_all_users_subscriptions(tg_id : str) -> list[str]:
         #Просто возвращает все такие модельки из базы
         with session_factory() as session:
-            all_users_subs = session.query(UsersInfo).all()
-            return all_users_subs
+            all_users_subs = [result[0] for result in session.query(UsersOlympiads.followed_olymp).filter(tg_id=tg_id).all()]
+            olymps = [result[0] for result in session.query(OlympiadsInfo.name).filter(OlympiadsInfo.olymp_id.in_(all_users_subs)).all()]
+            return olymps
 
     @staticmethod
     def insert_data() -> None:
