@@ -196,7 +196,9 @@ class OlympBot:
         
         @self.bot.callback_query_handler(func=lambda call: call.data.startswith('checkolymp_'))
         def send_info(call):
-            self.bot.send_message(call.message.chat.id, f"инфа из бд про олимпиаду")
+            olymp_name = call.data.split('_')[1]
+            info = SyncOrm.get_olympinfo_by_name(olymp_name)
+            self.bot.send_message(call.message.chat.id, info)
 
     def run(self):
         self.bot.polling(none_stop=True)

@@ -72,7 +72,7 @@ class SyncOrm():
 
     @staticmethod
     def get_all_user_subscriptions(tg_id : str) -> list[str]:
-        #Просто возвращает все такие модельки из базы
+        #Возвращает имена пользовательских олимпиад
         with session_factory() as session:
             all_users_subs = [result[0] for result in session.query(UsersOlympiads.followed_olymp).filter(tg_id=tg_id).all()]
             olymps = [result[0] for result in session.query(OlympiadsInfo.name).filter(OlympiadsInfo.olymp_id.in_(all_users_subs)).all()]
@@ -80,9 +80,10 @@ class SyncOrm():
 
     @staticmethod
     def get_olympinfo_by_name(name: str) -> str:
+        #Возвращает инфу об олимпиаде по ее названию
         with session_factory() as session:
             olymp = session.query(OlympiadsInfo.link, OlympiadsInfo.level, OlympiadsInfo.subject).filter(OlympiadsInfo.name == name).first()
-            return f'{name} Ссылка: {olymp[0]} Уровень: {olymp[1]} Предмет: {olymp[2]}'
+            return f'{name} Ссылка:\n{olymp[0]}\nУровень:\n{olymp[1]}\nПредмет:\n{olymp[2]}'
 
     @staticmethod
     def insert_data() -> None:
