@@ -79,6 +79,12 @@ class SyncOrm():
             return olymps
 
     @staticmethod
+    def get_olympinfo_by_name(name: str) -> str:
+        with session_factory() as session:
+            olymp = session.query(OlympiadsInfo.link, OlympiadsInfo.level, OlympiadsInfo.subject).filter(OlympiadsInfo.name == name).first()
+            return f'{name} Ссылка: {olymp[0]} Уровень: {olymp[1]} Предмет: {olymp[2]}'
+
+    @staticmethod
     def insert_data() -> None:
         with session_factory() as session:
             for line in parse_first_page():
