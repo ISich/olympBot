@@ -22,13 +22,13 @@ class OlympBot:
         @self.bot.message_handler(func=lambda message: message.text in self.grades)
         def subject_peeker(message):
             user_id = message.chat.id
-            self.user_data[user_id] = {'grade': message.text, 'subjects': {}}
+            self.user_data[user_id] = {'grade': message.text, 'subjects': {}, 'olymps': {}}
             self.send_subject_selection(message)
     
     def send_subject_selection(self, message):
         markup = types.InlineKeyboardMarkup(row_width=1)
         buttons = [types.InlineKeyboardButton(s, callback_data=s) for s in self.subjects]
-        markup.add(*buttons, types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm"))        
+        markup.add(*buttons, types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_subj"))        
         self.bot.send_message(message.chat.id, "Выбери тип олимпиады:", reply_markup=markup)
 
         @self.bot.callback_query_handler(func=lambda call: call.data in self.subjects)
@@ -48,10 +48,10 @@ class OlympBot:
                     label += " ✅"
                 new_button = types.InlineKeyboardButton(label, callback_data=data_key)
                 new_markup.add(new_button)
-            new_markup.add(types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm"))
+            new_markup.add(types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_subj"))
             self.bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=new_markup)
         
-        @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm')
+        @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm_subj')
         def confirm_selection(call):
             user_id = call.message.chat.id
             types_chosen = ', '.join(self.user_data[user_id]['subjects'])
@@ -120,7 +120,6 @@ class OlympBot:
     
     def ask_for_notifies(self, message):
         self.bot.send_message(message.chat.id, "По заданным критериям у меня есть информация про следующие олимпиады:")
-        #ээээээ ВАНЯЯЯЯЯЯ ЭШКЕРЕ АУФ ПФФФФ
         self.bot.send_dice(message.chat.id)
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add("Подписаться на все", "Выбрать конкретные")
@@ -133,18 +132,56 @@ class OlympBot:
 
         @self.bot.message_handler(func=lambda message: message.text == 'Выбрать конкретные')
         def custom_peek(message):
-            #from olymps in db_callback:
-            #inline_knopki add olymp
-            #self.user_data['chosen_olymps'].add(all_from_peeked_knopki)
-            #markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            #markup.add(knopki)
-            self.bot.send_message(message.chat.id,"Вот список с олимпиадами по отдельности")
-            self.bot.send_dice(message.chat.id)
-            self.send_final(message)
+            self.send_olymp_selection(message)
+   
+    def send_olymp_selection(self, message):
+        user_olymps = SyncOrm.get_olympiads_interesting_for_user(str(message.chat.id))
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        buttons = [types.InlineKeyboardButton(o, callback_data=f"peekolymp_{o}") for o in user_olymps]
+        markup.add(*buttons, types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_olymp"))        
+        self.bot.send_message(message.chat.id, "Выбери интересующие тебя олимпиады:", reply_markup=markup)
     
+        @self.bot.callback_query_handler(func=lambda call: call.data.startswith('peekolymp_'))
+        def remake_olymp_btns(call):
+            user_id = call.message.chat.id
+            level_key = call.data
+            if level_key in self.user_data[user_id]['olymps']:
+                self.user_data[user_id]['olymps'].pop(level_key)
+            else:
+                self.user_data[user_id]['olymps'][level_key] = True
+
+            new_markup = types.InlineKeyboardMarkup()
+            for s in self.subjects:
+                data_key = s
+                label = s
+                if data_key in self.user_data[user_id]['olymps']:
+                    label += " ✅"
+                new_button = types.InlineKeyboardButton(label, callback_data=data_key)
+                new_markup.add(new_button)
+            new_markup.add(types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_olymp"))
+            self.bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=new_markup)
+        
+        @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm_olymp')
+        def confirm_selection(call):
+            user_id = call.message.chat.id
+            types_chosen = ', '.join(self.user_data[user_id]['olymps'])
+            self.bot.answer_callback_query(call.id, f"Ты выбрал: {types_chosen}")
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add('Продолжить', 'Перевыбрать олимпиады')
+            self.bot.send_message(call.message.chat.id, f"Ты выбрал следующие олимпиады:\n{types_chosen}", reply_markup=markup)
+
+        @self.bot.message_handler(func=lambda message: message.text == 'Продолжить')
+        def move_next(message):
+            SyncOrm.subscribe_on_olympiads_by_names(str(message.chat.id), self.user_data[message.chat.id]['olymps'].keys())
+            self.send_final(message)
+        
+        @self.bot.message_handler(func=lambda message: message.text == 'Перевыбрать олимпиады')
+        def reselect_olymps(message):
+            user_id = message.chat.id
+            self.user_data[user_id]['olymps'].clear()
+            self.send_olymp_selection(message)
+
     def send_final(self, message):
-        self.user_data['chosen_olymps'] = {}
-        #self.user_data['chosen_olymps'].add(all_from_callback)
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add("Посмотреть информацию об олимпиадах")
         self.bot.send_message(message.chat.id, "Отлично, теперь я полностью готов к работе! Теперь вы можете посмотреть информацию о выбранных олимпиадах. Я же буду напоминать вам за неделю и за день об окончании регистраций", reply_markup=markup)
