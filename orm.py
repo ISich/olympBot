@@ -27,14 +27,14 @@ class SyncOrm():
             session.commit()
 
     @staticmethod
-    def get_olympiads_interesting_for_user(tg_id: str) -> list[OlympiadsInfo]:
+    def get_olympiads_interesting_for_user(tg_id: str) -> list[str]:
         #возвращает список названий олимпиад по фильтрам юзера
         with session_factory() as session:
             userInfo = session.query(UsersInfo).filter(UsersInfo.tg_id == tg_id).first()
             subjects = userInfo.subjects
             levels = userInfo.levels
-            olymps = session.query(OlympiadsInfo).filter(and_(OlympiadsInfo.subject.in_(subjects),
-                                                             OlympiadsInfo.level.in_(levels))).all()
+            olymps = [res[0] for res in session.query(OlympiadsInfo.short_name).filter(and_(OlympiadsInfo.subject.in_(subjects),
+                                                             OlympiadsInfo.level.in_(levels))).all()]
             return olymps
 
     @staticmethod
