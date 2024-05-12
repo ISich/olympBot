@@ -7,10 +7,10 @@ from parser_1 import parse_first_page, parse_second_page, convert_date
 class SyncOrm():
     @staticmethod
     def create_tables() -> None:
-        Base.metadata.drop_all(sync_engine)
-        sync_engine.echo = False
+        OlympiadsDates.__table__.drop(sync_engine)
+        OlympiadsInfo.__table__.drop(sync_engine)
         Base.metadata.create_all(sync_engine)
-        sync_engine.echo = False
+        sync_engine.echo = True
 
 
     @staticmethod
@@ -111,6 +111,13 @@ class SyncOrm():
         with session_factory() as session:
             subs = [res[0] for res in session.query(UsersOlympiads.tg_id).filter(UsersOlympiads.followed_olymp == id).all()]
             return subs
+
+    @staticmethod
+    def delete_user(tg_id: str) -> None:
+        with session_factory() as session:
+            user = session.query(UsersInfo).filter(UsersInfo.tg_id==tg_id).first()
+            session.delete(user)
+            session.commit()
 
     @staticmethod
     def insert_data() -> None:

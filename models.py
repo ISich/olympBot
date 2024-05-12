@@ -1,29 +1,33 @@
 import datetime
-from sqlalchemy import Integer, String, ARRAY, ForeignKey, ForeignKeyConstraint
+from sqlalchemy import Integer, String, ARRAY, ForeignKey
 from typing import Optional
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 
 
 class Base(DeclarativeBase):
     pass
 
 
-class UsersOlympiads(Base):
-    __tablename__ = 'users_olympiads'
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    tg_id: Mapped[str] = mapped_column(autoincrement=False)
-    followed_olymp: Mapped[int]
-
-
 class UsersInfo(Base):
     __tablename__ = 'users_info'
     
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    tg_id: Mapped[str]
+    tg_id: Mapped[str] = mapped_column()
     grade: Mapped[int]
     subjects: Mapped[list[str]] = mapped_column(ARRAY(String(256)))
     levels: Mapped[list[int]] = mapped_column(ARRAY(Integer))
+
+    olympiads = relationship("UsersOlympiads", back_populates="user", cascade="all, delete-orphan")
+
+
+class UsersOlympiads(Base):
+    __tablename__ = 'users_olympiads'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    tg_id: Mapped[str] = mapped_column(ForeignKey(UsersInfo.tg_id))
+    followed_olymp: Mapped[int]
+
+    user = relationship("UsersInfo", back_populates="olympiads")
 
 
 class OlympiadsInfo(Base):
@@ -34,9 +38,6 @@ class OlympiadsInfo(Base):
     link: Mapped[str]
     level: Mapped[int]
     subject: Mapped[str]
-
-    def __str__(self):
-        return f"{self.name}"
 
 
 class OlympiadsDates(Base):
