@@ -41,7 +41,7 @@ class SyncOrm():
             userInfo = session.query(UsersInfo).filter(UsersInfo.tg_id == tg_id).first()
             subjects = userInfo.subjects
             levels = userInfo.levels
-            olymps = [res[0] for res in session.query(OlympiadsInfo.short_name).filter(and_(OlympiadsInfo.subject.in_(subjects),
+            olymps = [res[0] for res in session.query(OlympiadsInfo.name).filter(and_(OlympiadsInfo.subject.in_(subjects),
                                                              OlympiadsInfo.level.in_(levels))).all()]
             return olymps
     
