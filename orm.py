@@ -10,7 +10,7 @@ class SyncOrm():
         OlympiadsDates.__table__.drop(sync_engine)
         OlympiadsInfo.__table__.drop(sync_engine)
         Base.metadata.create_all(sync_engine)
-        sync_engine.echo = True
+        sync_engine.echo = False
 
 
     @staticmethod

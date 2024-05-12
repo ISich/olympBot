@@ -1,11 +1,14 @@
 import os
 import telebot
 from telebot import types
+from models import OlympiadsDates
 from orm import SyncOrm
+from datetime import datetime
+import asyncio
 
 class OlympBot:
-    def __init__(self, token):
-        self.bot = telebot.TeleBot(token)
+    def __init__(self, bot):
+        self.bot = bot
         self.user_data = {}
         self.subjects = ['Математика', 'Информатика', 'Физика', 'Химия']
         self.grades = ["9 класса", "10 класса", "11 класса"]
