@@ -99,7 +99,18 @@ class SyncOrm():
         with session_factory() as session:
             olymp = session.query(OlympiadsInfo).filter(OlympiadsInfo.olymp_id == id).first()
             return f'{olymp.name}\nСсылка:\n{olymp.link}\nУровень: {olymp.level}\nПредмет: {olymp.subject}'
-    
+
+    @staticmethod
+    def get_dates() -> list[OlympiadsDates]:
+        with session_factory() as session:
+            dates = session.query(OlympiadsDates).all()
+            return dates
+
+    @staticmethod
+    def get_subs_on_olymp(id: int) -> list[str]:
+        with session_factory() as session:
+            subs = [res[0] for res in session.query(UsersOlympiads.tg_id).filter(UsersOlympiads.followed_olymp == id).all()]
+            return subs
 
     @staticmethod
     def insert_data() -> None:
