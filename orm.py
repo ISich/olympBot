@@ -17,7 +17,12 @@ class SyncOrm():
     def add_user_info(tg_id: str, grade: int, subjects: list[str], levels: list[int]) -> None:
         #добавляет пользователя с этими данными в табличку users_info
         with session_factory() as session:
-            user = UsersInfo(tg_id=tg_id, grade=grade, subjects=subjects, levels=levels)
+            user = UsersInfo(
+                tg_id=tg_id,
+                grade=grade,
+                subjects=subjects,
+                levels=levels
+            )
             session.add(user)
             session.commit()
 
@@ -44,7 +49,10 @@ class SyncOrm():
                 OlympiadsInfo.level.in_(levels)
             ).all()
             for olympiad in olympiads:
-                user = UsersOlympiads(tg_id=tg_id, followed_olymp=olympiad.olymp_id)
+                user = UsersOlympiads(
+                    tg_id=tg_id,
+                    followed_olymp=olympiad.olymp_id
+                )
                 session.add(user)
             session.commit()
 
@@ -65,7 +73,10 @@ class SyncOrm():
             olymps = session.query(OlympiadsInfo).filter(OlympiadsInfo.subject.in_(subjects),
                                                          OlympiadsInfo.level.in_(levels)).all()
             for olymp in olymps:
-                user = UsersOlympiads(tg_id=tg_id, followed_olymp=olymp.olymp_id)
+                user = UsersOlympiads(
+                    tg_id=tg_id,
+                    followed_olymp=olymp.olymp_id
+                )
                 session.add(user)
             session.commit()
     
@@ -74,7 +85,10 @@ class SyncOrm():
         # По массиву из имен олимпиал подписывает пользователя на олимпиады по имени и фильтрам, те добовляет в таблицу users_olumpiads соответствующие записи
         with session_factory() as session:
             for id in ids:
-                user = UsersOlympiads(tg_id=tg_id, followed_olymp=id)
+                user = UsersOlympiads(
+                    tg_id=tg_id,
+                    followed_olymp=id
+                )
                 session.add(user)
             session.commit()
 
@@ -101,6 +115,12 @@ class SyncOrm():
             return f'{olymp.name}\nСсылка:\n{olymp.link}\nУровень: {olymp.level}\nПредмет: {olymp.subject}'
 
     @staticmethod
+    def get_olymp_model_by_id(id: int) -> OlympiadsInfo:
+        with session_factory() as session:
+            olymp = session.query(OlympiadsInfo).filter(OlympiadsInfo.olymp_id == id).first()
+            return olymp
+
+    @staticmethod
     def get_dates() -> list[OlympiadsDates]:
         with session_factory() as session:
             dates = session.query(OlympiadsDates).all()
@@ -115,7 +135,7 @@ class SyncOrm():
     @staticmethod
     def delete_user(tg_id: str) -> None:
         with session_factory() as session:
-            user = session.query(UsersInfo).filter(UsersInfo.tg_id==tg_id).first()
+            user = session.query(UsersInfo).filter(UsersInfo.tg_id == tg_id).first()
             session.delete(user)
             session.commit()
 
@@ -128,7 +148,8 @@ class SyncOrm():
                     name=line[1],
                     link=line[2],
                     subject=line[3],
-                    level=int(line[4])
+                    level=int(line[4]),
+                    short_name=line[5]
                 )
                 session.add(info)
             session.commit()

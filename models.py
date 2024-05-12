@@ -38,6 +38,7 @@ class OlympiadsInfo(Base):
     link: Mapped[str]
     level: Mapped[int]
     subject: Mapped[str]
+    short_name: Mapped[str]
 
 
 class OlympiadsDates(Base):
