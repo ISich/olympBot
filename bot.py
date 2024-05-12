@@ -19,6 +19,7 @@ class OlympBot:
         @self.bot.message_handler(commands=['start'])
         def send_welcome(message):
             SyncOrm.delete_user(str(message.chat.id))
+            self.user_data[message.chat.id] = {}
             self.bot.reply_to(message, "Привет! Я - olympHelper - твой олимпиадный информатор.\nЯ расскажу тебе информацию о той или иной олимпиаде и не дам тебе забыть о датах регистрации!")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             markup.add(*[types.InlineKeyboardButton(s, callback_data=s) for s in self.grades])
@@ -142,9 +143,9 @@ class OlympBot:
             self.send_olymp_selection(message)
    
     def send_olymp_selection(self, message):
-        user_olymps = SyncOrm.get_olympiad_models_interesting_for_user(str(message.chat.id))
+        self.user_olymps = SyncOrm.get_olympiad_models_interesting_for_user(str(message.chat.id))
         markup = types.InlineKeyboardMarkup(row_width=1)
-        buttons = [types.InlineKeyboardButton(o.name, callback_data=f"peekolymp_{o.olymp_id}") for o in user_olymps]
+        buttons = [types.InlineKeyboardButton(o.name, callback_data=f"peekolymp_{o.olymp_id}") for o in self.user_olymps]
         markup.add(*buttons, types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_olymp"))
         self.user_data[message.chat.id]['olymps_id'] = {}
         self.bot.send_message(message.chat.id, "Выбери интересующие тебя олимпиады:", reply_markup=markup)
@@ -159,7 +160,7 @@ class OlympBot:
                 self.user_data[user_id]['olymps_id'][olymp_id] = True
 
             new_markup = types.InlineKeyboardMarkup()
-            for s in user_olymps:
+            for s in self.user_olymps:
                 data_key = s.olymp_id
                 label = s.name
                 if data_key in self.user_data[user_id]['olymps_id']:
@@ -174,7 +175,7 @@ class OlympBot:
         def confirm_selection(call):
             user_id = call.message.chat.id
             peeked_olymps = []
-            for o in user_olymps:
+            for o in self.user_olymps:
                 if o.olymp_id in self.user_data[user_id]['olymps_id']:
                     peeked_olymps.append(o.name)
             olymps_chosen = ''.join(f"\n{o}" for o in peeked_olymps)

@@ -14,12 +14,12 @@ class SyncOrm():
             OlympiadsInfo.__table__.drop(sync_engine)
             sync_engine.echo = False
             Base.metadata.create_all(sync_engine)
+            sync_engine.echo = True
         except sqlalchemy.exc.ProgrammingError:
-        Base.metadata.drop_all(sync_engine)
-        sync_engine.echo = False
-        Base.metadata.create_all(sync_engine)
-        sync_engine.echo = True
-
+            Base.metadata.drop_all(sync_engine)
+            sync_engine.echo = False
+            Base.metadata.create_all(sync_engine)
+            sync_engine.echo = True
 
     @staticmethod
     def add_user_info(tg_id: str, grade: int, subjects: list[str], levels: list[int]) -> None:
