@@ -18,6 +18,7 @@ class OlympBot:
     def setup_handlers(self):
         @self.bot.message_handler(commands=['start'])
         def send_welcome(message):
+            SyncOrm.delete_user(str(message.chat.id))
             self.bot.reply_to(message, "Привет! Я - olympHelper - твой олимпиадный информатор.\nЯ расскажу тебе информацию о той или иной олимпиаде и не дам тебе забыть о датах регистрации!")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             markup.add(*[types.InlineKeyboardButton(s, callback_data=s) for s in self.grades])
@@ -141,7 +142,7 @@ class OlympBot:
             self.send_olymp_selection(message)
    
     def send_olymp_selection(self, message):
-        user_olymps = SyncOrm.get_olympiads_interesting_for_user(str(message.chat.id))
+        user_olymps = SyncOrm.get_olympiad_models_interesting_for_user(str(message.chat.id))
         markup = types.InlineKeyboardMarkup(row_width=1)
         buttons = [types.InlineKeyboardButton(o.name, callback_data=f"peekolymp_{o.olymp_id}") for o in user_olymps]
         markup.add(*buttons, types.InlineKeyboardButton("✅Подтвердить✅", callback_data="confirm_olymp"))

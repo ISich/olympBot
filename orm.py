@@ -37,6 +37,17 @@ class SyncOrm():
             olymps = [res[0] for res in session.query(OlympiadsInfo.short_name).filter(and_(OlympiadsInfo.subject.in_(subjects),
                                                              OlympiadsInfo.level.in_(levels))).all()]
             return olymps
+    
+    @staticmethod
+    def get_olympiad_models_interesting_for_user(tg_id: str) -> list[OlympiadsInfo]:
+        #возвращает список моделей олимпиад по фильтрам юзера
+        with session_factory() as session:
+            userInfo = session.query(UsersInfo).filter(UsersInfo.tg_id == tg_id).first()
+            subjects = userInfo.subjects
+            levels = userInfo.levels
+            olymps = session.query(OlympiadsInfo).filter(and_(OlympiadsInfo.subject.in_(subjects),
+                                                             OlympiadsInfo.level.in_(levels))).all()
+            return olymps
 
     @staticmethod
     def subscibe_on_all_olympiads(tg_id: str) -> None:
