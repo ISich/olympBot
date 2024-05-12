@@ -59,6 +59,7 @@ class OlympBot:
         
         @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm_subj')
         def confirm_selection(call):
+            self.bot.delete_message(call.message.chat.id, call.message.message_id)
             user_id = call.message.chat.id
             types_chosen = ', '.join(self.user_data[user_id]['subjects'])
             self.bot.answer_callback_query(call.id, f"Ты выбрал: {types_chosen}")
@@ -107,6 +108,7 @@ class OlympBot:
 
         @self.bot.callback_query_handler(func=lambda call: call.data == "confirm_level")
         def confirm_level(call):
+            self.bot.delete_message(call.message.chat.id, call.message.message_id)
             user_id = call.message.chat.id
             if len(self.user_data[user_id]['levels']) == 0:
                 levels_chosen = ''
@@ -173,6 +175,7 @@ class OlympBot:
         
         @self.bot.callback_query_handler(func=lambda call: call.data == 'confirm_olymp')
         def confirm_selection(call):
+            self.bot.delete_message(call.message.chat.id, call.message.message_id)
             user_id = call.message.chat.id
             peeked_olymps = []
             for o in self.user_olymps:
@@ -210,6 +213,7 @@ class OlympBot:
         
         @self.bot.callback_query_handler(func=lambda call: call.data.startswith('checkolymp_'))
         def send_info(call):
+            self.bot.delete_message(call.message.chat.id, call.message.message_id)
             olymp_id = int(call.data.split('_')[1])
             info = SyncOrm.get_olympinfo_by_id(olymp_id)
             self.bot.send_message(call.message.chat.id, info)
