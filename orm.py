@@ -9,8 +9,9 @@ class SyncOrm():
     def create_tables() -> None:
         OlympiadsDates.__table__.drop(sync_engine)
         OlympiadsInfo.__table__.drop(sync_engine)
-        Base.metadata.create_all(sync_engine)
         sync_engine.echo = False
+        Base.metadata.create_all(sync_engine)
+        sync_engine.echo = True
 
 
     @staticmethod
@@ -162,4 +163,4 @@ class SyncOrm():
                         date_to=convert_date(line[3])
                 )
                 session.add(date)
-                session.commit()
+            session.commit()

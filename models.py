@@ -12,7 +12,7 @@ class UsersInfo(Base):
     __tablename__ = 'users_info'
     
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    tg_id: Mapped[str] = mapped_column()
+    tg_id: Mapped[str] = mapped_column(unique=True)
     grade: Mapped[int]
     subjects: Mapped[list[str]] = mapped_column(ARRAY(String(256)))
     levels: Mapped[list[int]] = mapped_column(ARRAY(Integer))
