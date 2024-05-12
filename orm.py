@@ -136,8 +136,9 @@ class SyncOrm():
     def delete_user(tg_id: str) -> None:
         with session_factory() as session:
             user = session.query(UsersInfo).filter(UsersInfo.tg_id == tg_id).first()
-            session.delete(user)
-            session.commit()
+            if user:
+                session.delete(user)
+                session.commit()
 
     @staticmethod
     def insert_data() -> None:
@@ -154,14 +155,11 @@ class SyncOrm():
                 session.add(info)
             session.commit()
             for line in parse_second_page():
-                if session.query(OlympiadsInfo).filter_by(olymp_id=int(line[0])).count() > 0:
-                    date = OlympiadsDates(
+                date = OlympiadsDates(
                         olymp_id=int(line[0]),
                         stage_name=line[1],
                         date_from=convert_date(line[2]),
                         date_to=convert_date(line[3])
-                    )
-                    session.add(date)
-                else:
-                    print(f"No olymp_id found for {line[1]}")
-            session.commit()
+                )
+                session.add(date)
+                session.commit()
