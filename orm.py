@@ -1,3 +1,5 @@
+import sqlalchemy.exc
+
 from db import session_factory, sync_engine
 from models import Base, UsersOlympiads, UsersInfo, OlympiadsInfo, OlympiadsDates
 from sqlalchemy import and_
@@ -7,11 +9,16 @@ from parser_1 import parse_first_page, parse_second_page, convert_date
 class SyncOrm():
     @staticmethod
     def create_tables() -> None:
-        OlympiadsDates.__table__.drop(sync_engine)
-        OlympiadsInfo.__table__.drop(sync_engine)
-        sync_engine.echo = False
-        Base.metadata.create_all(sync_engine)
-        sync_engine.echo = True
+        try:
+            OlympiadsDates.__table__.drop(sync_engine)
+            OlympiadsInfo.__table__.drop(sync_engine)
+            sync_engine.echo = False
+            Base.metadata.create_all(sync_engine)
+        except sqlalchemy.exc.ProgrammingError:
+            Base.metadata.drop_all(sync_engine)
+            sync_engine.echo = False
+            Base.metadata.create_all(sync_engine)
+            sync_engine.echo = True
 
 
     @staticmethod
