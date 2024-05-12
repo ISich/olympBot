@@ -15,10 +15,10 @@ class SyncOrm():
             sync_engine.echo = False
             Base.metadata.create_all(sync_engine)
         except sqlalchemy.exc.ProgrammingError:
-            Base.metadata.drop_all(sync_engine)
-            sync_engine.echo = False
-            Base.metadata.create_all(sync_engine)
-            sync_engine.echo = True
+        Base.metadata.drop_all(sync_engine)
+        sync_engine.echo = False
+        Base.metadata.create_all(sync_engine)
+        sync_engine.echo = True
 
 
     @staticmethod
