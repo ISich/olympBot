@@ -27,6 +27,7 @@ class OlympBot:
         
         @self.bot.message_handler(func=lambda message: message.text in self.grades)
         def subject_peeker(message):
+            self.bot.send_message(message.chat.id, 'Хорошо!', reply_markup=types.ReplyKeyboardRemove())
             user_id = message.chat.id
             self.user_data[user_id] = {'grade': message.text, 'subjects': {}, 'olymps': {}}
             self.send_subject_selection(message)
@@ -71,12 +72,14 @@ class OlympBot:
         def move_next(message):
             user_id = message.chat.id
             self.user_data[user_id]['levels'] = {}
+            self.bot.send_message(message.chat.id, 'Хорошо!', reply_markup=types.ReplyKeyboardRemove())
             self.send_level_selection(message)
         
         @self.bot.message_handler(func=lambda message: message.text == 'Перевыбрать предметы')
         def reselect(message):
             user_id = message.chat.id
             self.user_data[user_id]['subjects'].clear()
+            self.bot.send_message(message.chat.id, 'Выбери предметы заново', reply_markup=types.ReplyKeyboardRemove())
             self.send_subject_selection(message)
 
     def send_level_selection(self, message):
@@ -142,6 +145,7 @@ class OlympBot:
 
         @self.bot.message_handler(func=lambda message: message.text == 'Выбрать конкретные')
         def custom_peek(message):
+            self.bot.send_message(message.chat.id, 'Хорошо!', reply_markup=types.ReplyKeyboardRemove())
             self.send_olymp_selection(message)
    
     def send_olymp_selection(self, message):
@@ -196,6 +200,7 @@ class OlympBot:
         def reselect_olymps(message):
             user_id = message.chat.id
             self.user_data[user_id]['olymps'].clear()
+            self.bot.send_message(message.chat.id, 'Выбери олимпиады заново', reply_markup=types.ReplyKeyboardRemove())
             self.send_olymp_selection(message)
 
     def send_final(self, message):
