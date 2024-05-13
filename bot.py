@@ -186,7 +186,7 @@ class OlympBot:
                 if o.olymp_id in self.user_data[user_id]['olymps_id']:
                     peeked_olymps.append(o.short_name)
             olymps_chosen = ''.join(f"\n{o}" for o in peeked_olymps)
-            self.bot.answer_callback_query(call.id, f"Ты выбрал: {olymps_chosen}")
+            #self.bot.answer_callback_query(call.id, f"Ты выбрал: {olymps_chosen}")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             markup.add('Далее', 'Перевыбрать олимпиады')
             self.bot.send_message(call.message.chat.id, f"Ты выбрал следующие олимпиады:\n{olymps_chosen}", reply_markup=markup)
