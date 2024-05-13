@@ -132,8 +132,14 @@ class OlympBot:
     def ask_for_notifies(self, message):
         self.bot.send_message(message.chat.id, "По заданным критериям у меня есть информация про следующие олимпиады:")
         user_olymps = SyncOrm.get_olympiads_interesting_for_user(str(message.chat.id))
+
         text = "".join([f"{o}\n" for o in user_olymps])
-        self.bot.send_message(message.chat.id, text)
+        if len(text) > 4096:
+            for x in range(0, len(text), 4096):
+                self.bot.send_message(message.chat.id, text[x:x+4096])
+        else:
+            self.bot.send_message(message.chat.id, text)
+
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add("Подписаться на все", "Выбрать конкретные")
         self.bot.send_message(message.chat.id, "Хочешь получать уведомления о всех или каких-то конкретных?", reply_markup=markup)
@@ -189,7 +195,15 @@ class OlympBot:
             #self.bot.answer_callback_query(call.id, f"Ты выбрал: {olymps_chosen}")
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             markup.add('Далее', 'Перевыбрать олимпиады')
-            self.bot.send_message(call.message.chat.id, f"Ты выбрал следующие олимпиады:\n{olymps_chosen}", reply_markup=markup)
+            text = f"Ты выбрал следующие олимпиады:\n{olymps_chosen}"
+
+            if len(text) > 4096:
+                for x in range(0, len(text), 4096):
+                    self.bot.send_message(message.chat.id, text[x:x+4096])
+            else:
+                self.bot.send_message(message.chat.id, text)
+            
+            #self.bot.send_message(call.message.chat.id, f"Ты выбрал следующие олимпиады:\n{olymps_chosen}", reply_markup=markup)
 
         @self.bot.message_handler(func=lambda message: message.text == 'Далее')
         def move_next(message):
